@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>整列機関室 ― 終わらないソートの実験室</title>
+<title>ソートを体験しよう!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -533,7 +533,7 @@
       </select>
     </label>
     <label>見る速さ <span id="speedVal">6</span>
-      <input type="range" id="speedRange" min="0.1" max="20" step="0.1" value="6">
+      <input type="range" id="speedRange" min="0.01" max="20" step="0.01" value="6">
     </label>
     <button id="pauseBtn">一時停止 ⏸</button>
     <button id="resetBtn" class="secondary">記録をやり直す</button>
@@ -1374,7 +1374,7 @@ function resetStats(){
   updateLeaderboard();
 }
 
-speedRange.addEventListener('input', ()=>{ speedVal.textContent = parseFloat(speedRange.value).toFixed(1).replace(/\.0$/,''); });
+speedRange.addEventListener('input', ()=>{ speedVal.textContent = parseFloat(speedRange.value).toFixed(2).replace(/\.0$/,''); });
 sizeSel.addEventListener('change', ()=>{
   arraySize = parseInt(sizeSel.value,10);
   Object.keys(runners).forEach(k=> delete runners[k]);
