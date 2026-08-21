@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ソートを体験しよう!</title>
+<title>ソートを体感しよう!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -511,7 +511,7 @@
   </header>
 
   <details class="explainer">
-    <summary>体感できるソートは10種類 ― タップすると仕組みのメモが読めます</summary>
+    <summary>体感できるソートは10種類 ― タップすると仕組みの説明が読めます</summary>
     <div class="explain-grid" id="explainGrid"></div>
   </details>
 
@@ -533,7 +533,7 @@
       </select>
     </label>
     <label>見る速さ <span id="speedVal">6</span>
-      <input type="range" id="speedRange" min="0.01" max="20" step="0.01" value="6">
+      <input type="range" id="speedRange" min="0.1" max="20" step="0.1" value="6">
     </label>
     <button id="pauseBtn">一時停止 ⏸</button>
     <button id="resetBtn" class="secondary">記録をやり直す</button>
@@ -542,7 +542,7 @@
   <div class="algo-toggles" id="algoToggles"></div>
 
   <div class="leaderboard">
-    <h2>だいたいの速さくらべ（平均タイム）<span class="hint">見出しをクリックすると大きく表示</span></h2>
+    <h2>速さ比べ（平均タイム）<span class="hint">見出しをクリックすると大きく表示</span></h2>
     <div id="lbRows"><div class="lb-empty">まだ記録なし。ひと周りしたら、ここに並びます。</div></div>
   </div>
 
@@ -607,8 +607,8 @@ const DETAILS = {
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定（同じ値の順序を保つ）</td></tr>
     </table>
     <p style="color:var(--dim);font-size:12px;">※このデモは配列を無限にシャッフルし続けるため、早期終了の恩恵はほぼ発生せず、常にフルパスに近い動きになります。</p>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">水中の気泡が少しずつ水面へ昇っていくように、大きな値が1回のパスごとに一歩ずつ後ろへ押し出されていくイメージ。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">大きい値が1回のパスごとに少しずつ配列の末尾へ移動していく様子が、水中の気泡（バブル）が水面に向かって少しずつ浮かび上がっていく様子に似ていることから、この名前がついた。1950〜60年代から使われてきた古典的なソートの一つで、「bubble sort」という呼び名自体は1962年の論文にすでに登場している。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>仕組みが直感的で理解しやすく、アルゴリズム学習の入り口として最適</li>
@@ -640,8 +640,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定（同じ値の順序が入れ替わることがある）</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">トランプを手札に並べるとき、残りの山から毎回いちばん小さいカードを探して端に置いていく作業に似ている。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">各ステップで「まだ整列していない範囲の中から最小値を選び出す（セレクトする）」という操作をそのまま繰り返すことから、選択（セレクション）ソートと呼ばれている。仕組みの説明がそのまま名前になっている、素直な命名の例。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>交換回数が少ないため、書き込みコストの高い記憶媒体（一部のフラッシュメモリなど）では有利になることがある</li>
@@ -672,8 +672,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">1枚ずつ配られるトランプを、そのつど手札の正しい位置に挿し込んでいく動作そのもの。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">整列済みの部分に、次の要素を正しい位置まで「挿し込む（インサートする）」という操作をそのまま名前にしている。トランプを配られるたびに手札の正しい位置へ差し込んでいく動きが、名前の由来としてもよく引き合いに出される。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>ほぼ整列済みのデータや、データが少しずつ届くオンライン処理に強い</li>
@@ -705,8 +705,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(log n)（再帰スタック）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">図書館の本を「あ行より前」「あ行より後」のように大まかに2つの束に仕分けてから、それぞれの束の中でさらに細かく仕分けていく作業。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">1959年にイギリスの計算機科学者トニー・ホーア（Tony Hoare）が考案した際、当時広く使われていた他のソート法に比べて実行が明らかに「速い（quick）」ことから、そのまま「クイックソート」と名付けられた。仕組みの巧妙さよりも、実測での速さの印象がそのまま名前になった珍しい例。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>定数倍が小さくキャッシュ効率もよいため、実測では非常に高速</li>
@@ -736,8 +736,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(n)（マージ用の一時配列が必要）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">2つのすでに整列済みのトランプの山を、それぞれ一番上のカードを見比べながら1つの山にまとめていく作業。分割は「山をひたすら半分に割って1枚ずつにする」イメージ。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">分割していった小さな整列済み配列同士を、最後に1つに「統合する（マージする）」処理がこのアルゴリズムの核心であることから、そのまま名前になった。考案者は「プログラム内蔵方式」でも知られるジョン・フォン・ノイマンとされ、1945年ごろに発表したのが最初期の例だと言われている。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>どんなデータに対しても計算量が常に安定しており、性能を予測しやすい</li>
@@ -767,8 +767,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">トーナメント表の頂点（いちばん強い選手）を毎回引き抜いて表彰台に並べ、そのたびに残りのトーナメントを組み直していく作業に近い。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">配列を「ヒープ」と呼ばれる木構造のデータ構造（親が常に子以上の値を持つ、という規則を持つ木）に見立てて処理することから、そのままヒープソートと呼ばれている。ヒープというデータ構造自体は、1964年にJ. W. J. Williamsがこのソートアルゴリズムを発表する中で紹介したものとされる。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>追加メモリをほぼ使わずにO(n log n)を保証できるのが最大の強み</li>
@@ -797,8 +797,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定（遠く離れた要素同士を交換するため）</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">引っ越しの荷物を、まず「同じ部屋の荷物」を大まかに集め、次に「同じ棚」、最後に「同じ箱」というように、範囲を狭めながら整理していくイメージ。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">動作の仕組みではなく、考案者の名前がそのまま付けられた珍しいタイプのソート。1959年にアメリカの計算機科学者ドナルド・シェル（Donald Shell）が発表したことから「シェルソート」と呼ばれている。「殻（shell）」や「間隔」という意味に由来する名前ではない点が、しばしば誤解されるポイント。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>挿入ソートより明確に高速でありながら、実装はさほど複雑にならない</li>
@@ -825,8 +825,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">髪をとかす櫛（コム）が、最初は大きな歯で全体のもつれを大まかにほぐし、徐々に目の細かい櫛で仕上げていくイメージ。名前の由来でもある。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">比較する間隔（ギャップ）を大きい状態から少しずつ狭めていく様子が、髪をとかす「櫛（コム）」の歯が全体を大まかにほぐしてから細かく整えていく動きに似ていることから、この名前がついた。1980年にWłodzimierz DobosiewiczやArtur Borowyらによって提案・命名されたとされる。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>単純なバブルソートより実測でかなり高速になる</li>
@@ -854,8 +854,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">カクテルシェイカーを振るように、配列の中身を左右に揺さぶりながら整えていくイメージ（名前の由来）。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">バブルソートを左右交互に往復させる様子が、カクテルシェイカーの中身を上下に振り混ぜる動きに似ていることから「カクテル（コクテール）ソート」と呼ばれるようになった。同じ理由で「シェイカーソート」という別名でも呼ばれる。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>バブルソートより実測は速くなりやすいが、根本の計算量はO(n²)のままで大規模データには向かない</li>
@@ -888,8 +888,8 @@ const DETAILS = {
       <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
       <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定</td></tr>
     </table>
-    <h3>たとえるなら</h3>
-    <div class="analogy-box">一列に並んだ植木鉢を見回るノームが、順番のおかしい2つを見つけるたびにその場で入れ替え、入れ替えた分だけ1歩後ろに下がって確認し直す、という素朴な作業。</div>
+    <h3>名前の由来</h3>
+    <div class="analogy-box">2000年にオランダの計算機科学者ディック・グルーン（Dick Grune）が、庭のノーム（小人）が一列に並んだ植木鉢を見回りながら、順番のおかしい2つを見つけるたびにその場で入れ替え、1歩下がって確認し直す、というたとえ話とともにこのアルゴリズムを紹介したことが名前の由来とされる。</div>
     <h3>得意・不得意</h3>
     <ul>
       <li>実装が非常にシンプルで覚えやすいのが最大の特徴。特別なネスト構造も不要</li>
@@ -1252,6 +1252,18 @@ function buildPanels(){
   Object.keys(runners).forEach(k=>{
     if(!active.has(k)) delete runners[k];
   });
+
+  const qrCard = document.createElement('div');
+  qrCard.className = 'panel';
+  qrCard.innerHTML = `
+    <div class="panel-head">
+      <div class="panel-title"><span class="panel-name">携帯用QR</span></div>
+    </div>
+    <div style="display:flex;justify-content:center;align-items:center;padding:8px 0 4px;">
+      <img src="sort.png" alt="QRコード" style="max-width:200px;width:100%;height:auto;border-radius:6px;border:1px solid var(--line);">
+    </div>
+  `;
+  panelsEl.appendChild(qrCard);
 }
 
 function fmtTime(ms){
@@ -1374,7 +1386,7 @@ function resetStats(){
   updateLeaderboard();
 }
 
-speedRange.addEventListener('input', ()=>{ speedVal.textContent = parseFloat(speedRange.value).toFixed(2).replace(/\.0$/,''); });
+speedRange.addEventListener('input', ()=>{ speedVal.textContent = parseFloat(speedRange.value).toFixed(1).replace(/\.0$/,''); });
 sizeSel.addEventListener('change', ()=>{
   arraySize = parseInt(sizeSel.value,10);
   Object.keys(runners).forEach(k=> delete runners[k]);
