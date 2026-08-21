@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>整列機関室 ― 終わらないソートの実験室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FAFAF9;
+    --panel: #FFFFFF;
+    --panel-2: #F4F4F3;
+    --line: #E4E4E1;
+    --ink: #1E1E1C;
+    --dim: #767671;
+    --dim-2: #A5A59F;
+    --accent: #2F6FED;
+    --amber: #D99A1E;
+    --green: #3F8F5E;
+    --bar-idle: #DADAD5;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    padding: 32px 20px 60px;
+    min-height:100vh;
+  }
+  .wrap{max-width:1280px;margin:0 auto;}
+
+  header{text-align:center;margin-bottom:24px;}
+  .eyebrow{
+    display:inline-block;
+    font-family: var(--font-mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color: var(--accent);
+  }
+  h1{
+    font-weight:700;
+    font-size:32px;
+    letter-spacing:-.01em;
+    margin:10px 0 8px;
+  }
+  h1 span{color:var(--accent);}
+  .sub{color:var(--dim);font-size:13.5px;line-height:1.7;max-width:560px;margin:0 auto;}
+  .session-clock{
+    margin-top:14px;
+    font-size:12.5px;
+    color: var(--dim);
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+  .session-clock b{font-family: var(--font-mono); color: var(--ink); font-weight:600;}
+
+  details.explainer{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius:8px;
+    padding: 4px 16px;
+    margin-bottom: 14px;
+  }
+  details.explainer summary{
+    cursor:pointer;
+    font-weight:600;
+    font-size:13.5px;
+    color: var(--ink);
+    padding: 12px 0;
+    list-style: none;
+  }
+  details.explainer summary::-webkit-details-marker{display:none;}
+  .explain-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap:10px;
+    padding-bottom: 14px;
+  }
+  .explain-card{
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius:6px;
+    padding: 10px 12px;
+    cursor:pointer;
+    transition: background-color .15s ease;
+  }
+  .explain-card:hover{ background: #ECECE9; }
+  .explain-card:focus-visible{ outline: 2px solid var(--accent); outline-offset:2px; }
+  .explain-card .ec-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .explain-card .ec-name{font-size:13px;font-weight:600;color:var(--ink);}
+  .explain-card .ec-complexity{font-family: var(--font-mono);font-size:10px;color: var(--accent);white-space:nowrap;}
+  .explain-card p{margin:5px 0 0;font-size:11.5px;line-height:1.6;color:var(--dim);}
+  .explain-card .ec-more{margin:7px 0 0;font-size:10.5px;color:var(--accent);}
+
+  /* legend */
+  .legend{
+    display:flex;
+    justify-content:center;
+    gap:18px;
+    flex-wrap:wrap;
+    font-size:11.5px;
+    color: var(--dim);
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 14px;
+    margin-bottom:14px;
+  }
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+
+  /* controls */
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 22px;
+    align-items:center;
+    justify-content:center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius:8px;
+    padding:13px 18px;
+    margin-bottom: 16px;
+    font-size:12.5px;
+  }
+  .controls label{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:12.5px;}
+  select{
+    background: var(--panel-2);
+    color: var(--ink);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:5px 8px;
+    font-family: var(--font-mono);
+    font-size:12px;
+  }
+  input[type=range]{accent-color:var(--accent);}
+  button{
+    font-weight:600;
+    font-size:13px;
+    border:1px solid var(--accent);
+    border-radius:6px;
+    padding:8px 16px;
+    cursor:pointer;
+    background: var(--accent);
+    color: #FFFFFF;
+    transition: opacity .1s ease;
+  }
+  button:hover{ opacity:.9; }
+  button.secondary{background:transparent;color:var(--accent);}
+  button.chip{
+    font-weight:500;
+    font-size:11.5px;
+    padding:5px 12px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    background: var(--panel);
+    color: var(--dim);
+  }
+  button.chip.on{ border-color: var(--accent); color: var(--accent); background: rgba(47,111,237,.08); }
+
+  .algo-toggles{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    justify-content:center;
+    margin-bottom:16px;
+  }
+
+  /* leaderboard */
+  .leaderboard{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius:8px;
+    padding: 13px 16px;
+    margin-bottom: 16px;
+  }
+  .leaderboard h2{
+    font-weight:600;
+    font-size:14px;
+    margin:0 0 10px;
+    color: var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .leaderboard .hint{font-size:10.5px;color:var(--dim-2);font-weight:400;}
+  .lb-row{
+    display:grid;
+    grid-template-columns: 24px 130px 1fr 92px;
+    align-items:center;
+    gap:10px;
+    height:24px;
+    margin-bottom:5px;
+  }
+  .lb-rank{font-family: var(--font-mono);font-weight:700;font-size:12px;color:var(--accent);text-align:center;}
+  .lb-name{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;}
+  .lb-swatch{width:8px;height:8px;border-radius:2px;flex:none;}
+  .lb-track{position:relative;height:10px;background: var(--panel-2);border-radius:5px;overflow:hidden;}
+  .lb-fill{height:100%;width:0%;border-radius:5px;transition:width .3s ease;}
+  .lb-val{font-family: var(--font-mono);font-size:10.5px;color:var(--dim);text-align:right;white-space:nowrap;}
+  .lb-empty{font-size:11.5px;color:var(--dim-2);padding:6px 0;}
+
+  /* panel grid */
+  .panels{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap:12px;
+  }
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius:8px;
+    padding: 14px 14px 10px;
+    position:relative;
+    transition: border-color .2s ease;
+  }
+  .panel.focused{
+    grid-column: 1 / -1;
+  }
+  .panel.flash{
+    border-color: var(--green);
+  }
+  .panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    cursor:pointer;
+    margin-bottom:8px;
+  }
+  .panel-title{display:flex;align-items:center;gap:8px;min-width:0;}
+  .dot{
+    width:8px;height:8px;border-radius:50%;
+    background: var(--dim-2);
+    flex:none;
+  }
+  .dot.running{ background: var(--green); }
+  .panel-name-btn{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    background:none;
+    border:none;
+    padding:0;
+    cursor:pointer;
+    min-width:0;
+    font:inherit;
+  }
+  .panel-name{
+    font-weight:600;font-size:13.5px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    color: var(--ink);
+  }
+  .panel-name-btn:hover .panel-name{ color: var(--accent); }
+  .panel-name-btn:focus-visible{ outline: 2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+  .info-dot{
+    flex:none;
+    width:14px;height:14px;
+    border-radius:50%;
+    border:1px solid var(--dim-2);
+    color: var(--dim-2);
+    font-family: var(--font-mono);
+    font-size:9px;
+    line-height:12px;
+    text-align:center;
+    background:none;
+    padding:0;
+    cursor:pointer;
+    display:inline-block;
+    vertical-align:middle;
+    position:relative;
+  }
+  .info-dot::before{
+    content:'';
+    position:absolute;
+    inset:-8px;
+  }
+  .info-dot:hover{ border-color: var(--accent); color: var(--accent); }
+  .modal th .info-dot{ margin-left:4px; }
+  .stat .lbl .info-dot{ margin-left:3px; }
+  tr.term-note td{ background: var(--panel-2); }
+  .panel-name-btn:hover .info-dot{ border-color: var(--accent); color: var(--accent); }
+  .panel-complexity{
+    font-family: var(--font-mono);
+    font-size:10px;
+    color: var(--accent);
+    white-space:nowrap;
+    flex:none;
+  }
+  .loop-text{
+    font-family: var(--font-mono);
+    font-size:12.5px;
+    font-weight:700;
+    color: var(--ink);
+  }
+  .panel-loop{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+  }
+
+  .bars{
+    height: 120px;
+    display:flex;
+    align-items:flex-end;
+    gap:1px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius:5px;
+    padding: 4px;
+    margin-bottom:6px;
+  }
+  .panel.focused .bars{ height:220px; }
+  .bars i{
+    display:block;
+    flex:1;
+    background: var(--bar-idle);
+    border-radius: 1px 1px 0 0;
+    transition: background-color .08s ease;
+  }
+  .bars i.hl-compare{ background: var(--accent) !important; }
+  .bars i.hl-swap{ background: var(--amber) !important; }
+  .bars i.hl-write{ background: var(--green) !important; }
+
+  .progress{
+    height:4px;
+    background: var(--panel-2);
+    border-radius:2px;
+    overflow:hidden;
+    margin-bottom:10px;
+  }
+  .progress-fill{height:100%;width:0%;background: var(--accent);transition: width .12s linear;}
+
+  .stat-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .stat{
+    background: var(--panel-2);
+    border-radius:5px;
+    padding: 6px 8px;
+  }
+  .stat .lbl{font-size:9.5px;color:var(--dim-2);letter-spacing:.02em;}
+  .stat .val{font-family: var(--font-mono);font-size:13.5px;font-weight:700;color:var(--ink);}
+  .stat.speed .val{color: var(--accent);}
+  .stat.avg .val{color: var(--accent);}
+
+  .spark{
+    width:100%;
+    height:28px;
+    display:block;
+  }
+  .spark path{fill:none;stroke-width:1.5;}
+
+  footer{
+    text-align:center;
+    margin-top:26px;
+    font-size:12px;
+    line-height:1.8;
+    max-width:520px;
+    margin-left:auto;
+    margin-right:auto;
+    color: var(--dim);
+  }
+  footer .sign{ display:block; margin-top:6px; color: var(--dim-2); }
+
+  /* ---- detail modal ---- */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background: rgba(20,20,18,.55);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding: 5vh 16px;
+    z-index: 100;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .15s ease;
+  }
+  .modal-overlay.open{ opacity:1; pointer-events:auto; }
+  .modal{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    max-width: 700px;
+    width:100%;
+    max-height: 88vh;
+    overflow-y:auto;
+    padding: 28px 28px 30px;
+    position:relative;
+  }
+  .modal-close{
+    position:sticky;
+    float:right;
+    top:0;
+    background: var(--panel-2);
+    border:1px solid var(--line);
+    color: var(--dim);
+    width:28px;height:28px;
+    border-radius:50%;
+    font-size:15px;
+    line-height:1;
+    padding:0;
+    cursor:pointer;
+  }
+  .modal-close:hover{ color: var(--ink); border-color: var(--dim); }
+  .detail-badge{
+    display:inline-block;
+    font-family: var(--font-mono);
+    font-size:10.5px;
+    padding:3px 9px;
+    border-radius:12px;
+    margin-bottom:8px;
+  }
+  .modal h2{
+    font-weight:700;
+    font-size:22px;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+  .detail-lead{
+    color: var(--dim);
+    font-size:13px;
+    line-height:1.8;
+    margin: 0 0 18px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--line);
+  }
+  .modal h3{
+    font-weight:600;
+    font-size:14.5px;
+    color: var(--ink);
+    margin: 22px 0 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .modal h3::before{
+    content:'';
+    width:3px;height:13px;
+    background: var(--accent);
+    border-radius:2px;
+    display:inline-block;
+  }
+  .modal p{ font-size:13px; line-height:1.85; color: var(--ink); margin: 0 0 10px; }
+  .modal ol, .modal ul{ margin: 0 0 10px; padding-left: 20px; }
+  .modal li{ font-size:13px; line-height:1.85; color: var(--ink); margin-bottom:6px; }
+  .modal table{ width:100%; border-collapse:collapse; font-size:12.5px; margin: 4px 0 14px; }
+  .modal th, .modal td{ text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); }
+  .modal th{ color: var(--dim); font-weight:500; font-family: var(--font-mono); font-size:11px; }
+  .modal td{ color: var(--ink); }
+  .modal td.mono, .modal th.mono{ font-family: var(--font-mono); }
+  .example-box{
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size:13px;
+    line-height:1.85;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+  .example-box .arr{ font-family: var(--font-mono); color: var(--accent); }
+  .analogy-box{
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 15px 12px;
+    font-size:13px;
+    line-height:1.85;
+    color: var(--ink);
+    margin: 12px 0 4px;
+  }
+
+  @media (max-width:560px){
+    h1{font-size:24px;}
+    .panels{grid-template-columns: 1fr;}
+    .stat-grid{grid-template-columns: repeat(2,1fr);}
+    .lb-row{grid-template-columns: 18px 90px 1fr 68px; gap:6px;}
+    .controls{flex-direction:column;align-items:stretch;}
+    .controls label{justify-content:space-between;}
+    .modal{padding:20px 18px 24px;}
+    .modal h2{font-size:19px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ソート</h1>
+    <div class="sub">日常のデータの整理に必須なソートをわかりやすく、実際に体験できるサイトを作りました。色々調整できるのでぜひ試してみてください。</div>
+    <div class="session-clock">
+      <span>眺め始めてから <b id="sessionClock">0:00</b></span>
+      <span>完了した周回 <b id="totalLoops">0</b>回</span>
+    </div>
+  </header>
+
+  <details class="explainer">
+    <summary>体感できるソートは10種類 ― タップすると仕組みのメモが読めます</summary>
+    <div class="explain-grid" id="explainGrid"></div>
+  </details>
+
+  <div class="legend">
+    <span><i style="background:var(--bar-idle)"></i>まだ触ってない</span>
+    <span><i style="background:var(--accent)"></i>比べてる</span>
+    <span><i style="background:var(--amber)"></i>入れ替えた</span>
+    <span><i style="background:var(--green)"></i>書き込んだ</span>
+    <span style="color:var(--dim-2)">下の折れ線は、直近の速さのゆらぎ</span>
+  </div>
+
+  <div class="controls">
+    <label>並べる数
+      <select id="sizeSel">
+        <option value="16">16</option>
+        <option value="24" selected>24</option>
+        <option value="32">32</option>
+        <option value="48">48</option>
+      </select>
+    </label>
+    <label>見る速さ <span id="speedVal">6</span>
+      <input type="range" id="speedRange" min="0.1" max="20" step="0.1" value="6">
+    </label>
+    <button id="pauseBtn">一時停止 ⏸</button>
+    <button id="resetBtn" class="secondary">記録をやり直す</button>
+  </div>
+
+  <div class="algo-toggles" id="algoToggles"></div>
+
+  <div class="leaderboard">
+    <h2>だいたいの速さくらべ（平均タイム）<span class="hint">見出しをクリックすると大きく表示</span></h2>
+    <div id="lbRows"><div class="lb-empty">まだ記録なし。ひと周りしたら、ここに並びます。</div></div>
+  </div>
+
+  <div class="panels" id="panels"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <button class="modal-close" id="modalClose" aria-label="閉じる">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const ALGORITHMS = [
+  { key:'bubble',    name:'バブルソート',     color:'#E4572E',
+    complexity:'O(n²)', desc:'隣り合う要素を比較し、順番が逆なら交換する操作をひたすら繰り返す。仕組みは単純だが比較回数が多く低速。' },
+  { key:'selection', name:'選択ソート',       color:'#4C9F70',
+    complexity:'O(n²)', desc:'未整列部分から最小値を探し、先頭と入れ替える。比較回数は多いが交換回数は少なめ。' },
+  { key:'insertion', name:'挿入ソート',       color:'#3E9BD3',
+    complexity:'O(n²)', desc:'整列済み部分に新しい要素を正しい位置まで挿し込んでいく。ほぼ整列済みのデータには強い。' },
+  { key:'quick',     name:'クイックソート',   color:'#E29A2E',
+    complexity:'平均O(n log n)', desc:'基準値（ピボット）より小さい/大きいグループに分割していく分割統治法。平均は非常に速いが運が悪いと崩れる。' },
+  { key:'merge',     name:'マージソート',     color:'#8A6FD8',
+    complexity:'O(n log n)', desc:'配列を半分に割って再帰的に整列し、最後に統合（マージ）する。常に安定した速さを出す優等生。' },
+  { key:'heap',      name:'ヒープソート',     color:'#C96A4C',
+    complexity:'O(n log n)', desc:'配列をヒープ構造に組み替え、最大値を取り出しては並べ替える。常に安定して速いが定数負荷はやや重め。' },
+  { key:'shell',     name:'シェルソート',     color:'#2FA8B8',
+    complexity:'O(n log²n)程度', desc:'挿入ソートを一定間隔（ギャップ）で先に行い、徐々に間隔を狭めていく改良版。' },
+  { key:'comb',      name:'コムソート',       color:'#B06A2E',
+    complexity:'O(n log n)程度', desc:'バブルソートの改良版で、比較する間隔を徐々に狭めながら交換していく。' },
+  { key:'cocktail',  name:'コクテールソート', color:'#3E9E6E',
+    complexity:'O(n²)', desc:'バブルソートを左右交互（双方向）に行う方式。大小どちらの偏りにもやや強いが根本は低速。' },
+  { key:'gnome',     name:'ノームソート',     color:'#C15B7A',
+    complexity:'O(n²)', desc:'挿入ソートに近い仕組みで、要素を1つずつ前後に動かしながら整列する素朴な方法。' },
+];
+
+// ---- long-form explanations, shown in the detail modal ----
+const DETAILS = {
+  bubble: `
+    <p class="detail-lead">隣り合う要素を比較して、順番が逆なら交換する。これをひたすら端まで繰り返すだけの、もっとも素朴なソート。1回のパスが終わるたびに、未整列部分の中で最大の値が末尾に「泡のように浮かび上がる」ことからこの名がついた。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>配列の先頭から、隣り合う2つの要素を比較する</li>
+      <li>順番が逆（左＞右）なら、その場で2つを入れ替える</li>
+      <li>1つ右へ進み、また隣同士を比較する。これを末尾まで繰り返す（＝1パス）</li>
+      <li>1パス終えるごとに、その時点での最大値が正しい末尾位置に確定する。次のパスでは対象範囲を1つ縮める</li>
+      <li>交換が1回も起きないパスがあれば、その時点で整列済みとみなして終了できる（早期終了）</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      <span class="arr">[5, 3, 8, 1]</span> から開始。<br>
+      1パス目：5と3を比較→逆順なので交換 <span class="arr">[3,5,8,1]</span>。5と8は順番通りなのでそのまま。8と1を比較→交換 <span class="arr">[3,5,1,8]</span>。最大値8が末尾に確定。<br>
+      2パス目：3と5はそのまま。5と1を比較→交換 <span class="arr">[3,1,5,8]</span>。<br>
+      3パス目：3と1を比較→交換 <span class="arr">[1,3,5,8]</span>。これで完成。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>ベスト <button type="button" class="info-dot" data-term="best">i</button></th><td class="mono">O(n)（早期終了ありの場合）</td></tr>
+      <tr><th>平均・ワースト <button type="button" class="info-dot" data-term="avgworst">i</button></th><td class="mono">O(n²)</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定（同じ値の順序を保つ）</td></tr>
+    </table>
+    <p style="color:var(--dim);font-size:12px;">※このデモは配列を無限にシャッフルし続けるため、早期終了の恩恵はほぼ発生せず、常にフルパスに近い動きになります。</p>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">水中の気泡が少しずつ水面へ昇っていくように、大きな値が1回のパスごとに一歩ずつ後ろへ押し出されていくイメージ。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>仕組みが直感的で理解しやすく、アルゴリズム学習の入り口として最適</li>
+      <li>ほぼ整列済みのデータには早期終了が効いて高速</li>
+      <li>比較・交換回数が多いため、大きなデータには実用上まったく向かない</li>
+    </ul>
+  `,
+  selection: `
+    <p class="detail-lead">未整列部分の中から最小値を探し出し、それを未整列部分の先頭に置く。この「探して、置く」を繰り返していくシンプルなソート。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>未整列部分（最初は配列全体）の先頭を「現在地」とする</li>
+      <li>現在地から末尾までをすべて走査し、最小値を持つ要素の位置を記録する</li>
+      <li>走査が終わったら、その最小値の要素と現在地の要素を交換する</li>
+      <li>現在地を1つ進めて、未整列部分を1つ縮める</li>
+      <li>未整列部分が1要素になるまで2〜4を繰り返す</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      <span class="arr">[5, 3, 8, 1]</span> から開始。<br>
+      先頭（index0）から最小値を探すと1（index3）。5と1を交換 <span class="arr">[1,3,8,5]</span>。<br>
+      index1から最小値を探すと3（自分自身）。交換不要 <span class="arr">[1,3,8,5]</span>。<br>
+      index2から最小値を探すと5（index3）。8と5を交換 <span class="arr">[1,3,5,8]</span>。これで完成。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>ベスト・平均・ワースト <button type="button" class="info-dot" data-term="bestavgworst">i</button></th><td class="mono">すべてO(n²)（比較回数は並びに関係なく一定）</td></tr>
+      <tr><th>交換回数</th><td class="mono">最大でも n−1 回と少ない</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定（同じ値の順序が入れ替わることがある）</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">トランプを手札に並べるとき、残りの山から毎回いちばん小さいカードを探して端に置いていく作業に似ている。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>交換回数が少ないため、書き込みコストの高い記憶媒体（一部のフラッシュメモリなど）では有利になることがある</li>
+      <li>比較回数は常に最大なので、大きなデータやほぼ整列済みのデータに対する強みはない</li>
+    </ul>
+  `,
+  insertion: `
+    <p class="detail-lead">配列の前方をすでに整列済みとみなし、次の要素を正しい位置まで1つずつ移動させながら挿し込んでいく。トランプを手札に並べる動作そのもの。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>2番目の要素から処理を開始する（先頭1要素は「整列済みの1要素」とみなす）</li>
+      <li>対象の要素をいったん取り出す</li>
+      <li>整列済み部分を後ろから見て、取り出した値より大きい要素があれば1つずつ右へずらす</li>
+      <li>取り出した値以下の要素が見つかった（または先頭に達した）ら、その直後に挿入する</li>
+      <li>次の要素へ進み、末尾まで2〜4を繰り返す</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      <span class="arr">[5, 3, 8, 1]</span> から開始。<br>
+      3を取り出す。5と比較→5＞3なので5を右へずらし、3を先頭に挿入 <span class="arr">[3,5,8,1]</span>。<br>
+      8を取り出す。5と比較→5＜8なのでそのまま <span class="arr">[3,5,8,1]</span>。<br>
+      1を取り出す。8,5,3すべてより小さいので順にずらし、先頭に挿入 <span class="arr">[1,3,5,8]</span>。これで完成。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>ベスト <button type="button" class="info-dot" data-term="best">i</button></th><td class="mono">O(n)（ほぼ整列済みの場合）</td></tr>
+      <tr><th>平均・ワースト <button type="button" class="info-dot" data-term="avgworst">i</button></th><td class="mono">O(n²)</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">1枚ずつ配られるトランプを、そのつど手札の正しい位置に挿し込んでいく動作そのもの。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>ほぼ整列済みのデータや、データが少しずつ届くオンライン処理に強い</li>
+      <li>小さな配列に対しては実測でも高速なため、クイックソートなど他のアルゴリズムの内部で「仕上げ」として使われることも多い</li>
+      <li>大きくランダムなデータには不向き</li>
+    </ul>
+  `,
+  quick: `
+    <p class="detail-lead">基準値（ピボット）を1つ選び、それより小さいグループと大きいグループに分割する処理を再帰的に繰り返す分割統治法。平均的には実務でもっともよく使われる高速なソートの一つ。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>区間の中からピボットを1つ選ぶ（このデモでは区間の末尾要素を採用）</li>
+      <li>区間の先頭からピボットの手前まで走査し、ピボットより小さい要素を前方に集めていく（パーティション処理）</li>
+      <li>走査が終わったら、ピボットを「小さいグループ」と「大きいグループ」の境界位置に移動する</li>
+      <li>ピボットの左側の区間・右側の区間それぞれに対して、同じ処理を再帰的に適用する</li>
+      <li>区間の要素数が1以下になったら、その区間の再帰を終了する</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      <span class="arr">[5, 3, 8, 1]</span>、ピボットは末尾の1。<br>
+      1より小さい要素はないため、1はそのまま先頭へ移動 <span class="arr">[1,3,8,5]</span>。<br>
+      右側の区間 <span class="arr">[3,8,5]</span> を再帰処理。ピボットは5。5より小さいのは3のみ→<span class="arr">[3,5,8]</span>。<br>
+      さらに右側の <span class="arr">[8]</span> は要素1つなのでそのまま。全体で <span class="arr">[1,3,5,8]</span> が完成。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>平均 <button type="button" class="info-dot" data-term="avg">i</button></th><td class="mono">O(n log n)</td></tr>
+      <tr><th>ワースト <button type="button" class="info-dot" data-term="worst">i</button></th><td class="mono">O(n²)（ピボット選びが偏り続けた場合。例：ソート済み配列で常に末尾を選ぶケース）</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(log n)（再帰スタック）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">図書館の本を「あ行より前」「あ行より後」のように大まかに2つの束に仕分けてから、それぞれの束の中でさらに細かく仕分けていく作業。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>定数倍が小さくキャッシュ効率もよいため、実測では非常に高速</li>
+      <li>ピボットの選び方が悪いと最悪計算量O(n²)に陥るため、実用ではランダム選択やメディアン選択などの工夫が重要</li>
+      <li>再帰を使うため、非常に深い再帰では呼び出しスタックに注意が必要</li>
+    </ul>
+  `,
+  merge: `
+    <p class="detail-lead">配列を半分ずつに分割し続け、要素数1になるまで再帰的に分割してから、整列済みの小さな配列同士を統合（マージ）しながら戻していく分割統治法。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>配列を中央で左右2つに分割する</li>
+      <li>左半分に対して同じ処理（分割）を再帰的に適用する</li>
+      <li>右半分に対しても同様に再帰的に分割する</li>
+      <li>要素数が1になったら整列済みとみなし、再帰を戻し始める</li>
+      <li>戻る際、左右2つの整列済み配列の先頭同士を比較し、小さい方から順に取り出して1つの配列にまとめる（マージ）</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      <span class="arr">[5, 3, 8, 1]</span> → <span class="arr">[5,3]</span> と <span class="arr">[8,1]</span> に分割 → さらに <span class="arr">[5][3]</span>、<span class="arr">[8][1]</span> に分割（要素1つは整列済み）。<br>
+      <span class="arr">[5]</span> と <span class="arr">[3]</span> をマージ→<span class="arr">[3,5]</span>。<span class="arr">[8]</span> と <span class="arr">[1]</span> をマージ→<span class="arr">[1,8]</span>。<br>
+      最後に <span class="arr">[3,5]</span> と <span class="arr">[1,8]</span> をマージ：1&lt;3→1、3&lt;8→3、5&lt;8→5、残り8 → <span class="arr">[1,3,5,8]</span> 完成。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>ベスト・平均・ワースト <button type="button" class="info-dot" data-term="bestavgworst">i</button></th><td class="mono">すべてO(n log n)</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(n)（マージ用の一時配列が必要）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">2つのすでに整列済みのトランプの山を、それぞれ一番上のカードを見比べながら1つの山にまとめていく作業。分割は「山をひたすら半分に割って1枚ずつにする」イメージ。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>どんなデータに対しても計算量が常に安定しており、性能を予測しやすい</li>
+      <li>安定ソートなので、複数のキーで並べ替えを重ねたい場面に向く</li>
+      <li>メモリに乗り切らない巨大データを扱う外部ソートでも使われる</li>
+      <li>追加のメモリ（O(n)）を必要とする点がトレードオフ</li>
+    </ul>
+  `,
+  heap: `
+    <p class="detail-lead">配列を「ヒープ」と呼ばれる木構造のルールに並べ替えたうえで、根（最大値）を取り出しては末尾に移動する、を繰り返すソート。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>配列全体を「二分ヒープ」（親が常に子以上の値を持つ木構造。配列上のインデックス計算だけで表現できる）に組み替える（ヒープ化）</li>
+      <li>ヒープの根（配列の先頭＝現時点での最大値）と、未整列部分の末尾要素を交換する</li>
+      <li>交換によって崩れたヒープ条件を、対象範囲を1つ縮めたうえで根から下に向かって整え直す</li>
+      <li>これを未整列部分が1要素になるまで繰り返す</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      <span class="arr">[5, 3, 8, 1]</span> をヒープ化すると <span class="arr">[8,3,5,1]</span>（根が最大値8になる）。<br>
+      8と末尾の1を交換 <span class="arr">[1,3,5,8]</span>。範囲を縮めて先頭3要素を再ヒープ化すると <span class="arr">[5,3,1]</span>。<br>
+      5と末尾（この範囲の末尾＝1）を交換 <span class="arr">[1,3,5]</span>。範囲をさらに縮めて再ヒープ化し、最終的に <span class="arr">[1,3,5,8]</span> が完成。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>ベスト・平均・ワースト <button type="button" class="info-dot" data-term="bestavgworst">i</button></th><td class="mono">すべてO(n log n)</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">トーナメント表の頂点（いちばん強い選手）を毎回引き抜いて表彰台に並べ、そのたびに残りのトーナメントを組み直していく作業に近い。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>追加メモリをほぼ使わずにO(n log n)を保証できるのが最大の強み</li>
+      <li>マージソートのような外部メモリを使えない環境で有効</li>
+      <li>定数倍がやや重く、実測ではクイックソートに劣ることが多い</li>
+    </ul>
+  `,
+  shell: `
+    <p class="detail-lead">挿入ソートの弱点（遠く離れた要素の移動に時間がかかる）を補うため、最初は大きな間隔（ギャップ）で飛び飛びに整列し、徐々に間隔を狭めながら最終的にギャップ1（普通の挿入ソート）で仕上げる改良版。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>初期ギャップを配列サイズのおよそ半分程度に設定する</li>
+      <li>ギャップ分だけ離れた要素同士を、挿入ソートと同じ要領で比較し、順番が逆なら間隔を保ったまま値を移動させる</li>
+      <li>配列全体に対してこのギャップでの部分的な整列を一通り終える</li>
+      <li>ギャップを縮める</li>
+      <li>ギャップが1になるまで2〜4を繰り返す。ギャップ1の回は通常の挿入ソートと同じ動きになる</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      <span class="arr">[5, 3, 8, 1]</span>、ギャップ2の場合：(5,8)を比較→順番通りのためそのまま。(3,1)を比較→逆順なので交換 <span class="arr">[5,1,8,3]</span>。<br>
+      ギャップ1（通常の挿入ソート）で仕上げると、最終的に <span class="arr">[1,3,5,8]</span> になる。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>目安の計算量 <button type="button" class="info-dot" data-term="approx">i</button></th><td class="mono">O(n log²n) 程度（ギャップの縮め方に依存）</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定（遠く離れた要素同士を交換するため）</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">引っ越しの荷物を、まず「同じ部屋の荷物」を大まかに集め、次に「同じ棚」、最後に「同じ箱」というように、範囲を狭めながら整理していくイメージ。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>挿入ソートより明確に高速でありながら、実装はさほど複雑にならない</li>
+      <li>中規模のデータや、メモリが極端に制限された組み込み環境で使われることがある</li>
+    </ul>
+  `,
+  comb: `
+    <p class="detail-lead">バブルソートの改良版。比較する2要素の間隔（ギャップ）を最初は大きく取り、徐々に狭めながら比較・交換を繰り返す。最後はギャップ1（通常のバブルソート）で仕上げる。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>ギャップを配列サイズに設定する</li>
+      <li>ギャップを約1.3で割って（小数点切り捨て）更新する。1未満になったら1に固定する</li>
+      <li>配列の先頭から、ギャップ分離れた要素同士を比較する</li>
+      <li>順番が逆なら交換する（1回でも交換が起きたら「まだ整列済みではない」フラグを立てる）</li>
+      <li>末尾まで進んだら3に戻る。ギャップが1で、かつ交換が1回も起きなかったパスがあれば終了</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      要素数4の場合、ギャップは 4→3→2→1 と縮んでいく。ギャップが大きい段階のうちに、離れた位置にある小さい値（バブルソートが苦手とする「カメ」要素）を一気に前方へ移動できるのがポイント。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>目安の計算量 <button type="button" class="info-dot" data-term="approx">i</button></th><td class="mono">平均でO(n log n)程度（縮小率1.3の場合）</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>不安定</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">髪をとかす櫛（コム）が、最初は大きな歯で全体のもつれを大まかにほぐし、徐々に目の細かい櫛で仕上げていくイメージ。名前の由来でもある。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>単純なバブルソートより実測でかなり高速になる</li>
+      <li>特にバブルソートが苦手とする「小さい値が配列の後方にある」ケース（通称カメ問題）に強い</li>
+    </ul>
+  `,
+  cocktail: `
+    <p class="detail-lead">バブルソートを一方向だけでなく、左→右、右→左と交互に行う双方向バブルソート。シェイカーソートとも呼ばれる。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>配列の先頭から末尾に向かって、隣り合う要素を比較・交換する（通常のバブルソートと同じ。末尾に最大値が確定する）</li>
+      <li>末尾への走査が終わったら、今度は末尾から先頭に向かって同様に比較・交換する（先頭に最小値が確定する）</li>
+      <li>1往復ごとに、対象範囲（未整列部分）を両端から1つずつ縮める</li>
+      <li>1往復の中で交換が1回も起きなければ、その時点で整列完了とみなして終了できる</li>
+      <li>未整列部分がなくなるまで1〜4を繰り返す</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      バブルソートが常に片側からしか値を運べないのに対し、コクテールソートは往路で大きい値を後ろへ、復路で小さい値を前へと同時に運べる。そのため、両端に偏った値（例：最小値が配列の末尾付近にある）の移動が速くなる。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>ベスト <button type="button" class="info-dot" data-term="best">i</button></th><td class="mono">O(n)（早期終了時）</td></tr>
+      <tr><th>平均・ワースト <button type="button" class="info-dot" data-term="avgworst">i</button></th><td class="mono">O(n²)</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">カクテルシェイカーを振るように、配列の中身を左右に揺さぶりながら整えていくイメージ（名前の由来）。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>バブルソートより実測は速くなりやすいが、根本の計算量はO(n²)のままで大規模データには向かない</li>
+      <li>教育目的や、両端に偏りのある小規模データ向け</li>
+    </ul>
+  `,
+  gnome: `
+    <p class="detail-lead">挿入ソートに近い発想を、ループと現在位置の前後移動だけで実現するシンプルなソート。「庭のノームが植木鉢の列を並べ替える」というたとえ話が名前の由来とされる。</p>
+    <h3>仕組み</h3>
+    <ol>
+      <li>現在位置を配列の先頭（インデックス0）に置く</li>
+      <li>現在位置が先頭なら1つ右に進む</li>
+      <li>現在位置とその1つ左の要素を比較する</li>
+      <li>順番が正しければ（左≦右）そのまま1つ右に進む</li>
+      <li>順番が逆であれば、2つの要素を交換したうえで1つ左に戻る（バックトラック）</li>
+      <li>現在位置が配列の末尾を超えたら終了</li>
+    </ol>
+    <h3>具体例で追ってみる</h3>
+    <div class="example-box">
+      <span class="arr">[5, 3, 8, 1]</span> から開始。<br>
+      位置1（3）と位置0（5）を比較→5＞3なので交換し <span class="arr">[3,5,8,1]</span>、位置0に戻る→先頭なので位置1へ。<br>
+      5と3はもう順番通り→進む。8と5も順番通り→進む。<br>
+      位置3（1）と位置2（8）→8＞1なので交換 <span class="arr">[3,5,1,8]</span>、位置2に戻る。5と1→交換 <span class="arr">[3,1,5,8]</span>、位置1に戻る。3と1→交換 <span class="arr">[1,3,5,8]</span>、位置0に戻る。<br>
+      先頭なので位置1へ進み、以降はすべて順番通りなので最後まで進んで終了。完成形は <span class="arr">[1,3,5,8]</span>。
+    </div>
+    <h3>計算量・性質</h3>
+    <table>
+      <tr><th>ベスト <button type="button" class="info-dot" data-term="best">i</button></th><td class="mono">O(n)（ほぼ整列済みの場合）</td></tr>
+      <tr><th>平均・ワースト <button type="button" class="info-dot" data-term="avgworst">i</button></th><td class="mono">O(n²)</td></tr>
+      <tr><th>空間計算量 <button type="button" class="info-dot" data-term="space">i</button></th><td class="mono">O(1)（in-place）</td></tr>
+      <tr><th>安定性 <button type="button" class="info-dot" data-term="stability">i</button></th><td>安定</td></tr>
+    </table>
+    <h3>たとえるなら</h3>
+    <div class="analogy-box">一列に並んだ植木鉢を見回るノームが、順番のおかしい2つを見つけるたびにその場で入れ替え、入れ替えた分だけ1歩後ろに下がって確認し直す、という素朴な作業。</div>
+    <h3>得意・不得意</h3>
+    <ul>
+      <li>実装が非常にシンプルで覚えやすいのが最大の特徴。特別なネスト構造も不要</li>
+      <li>実用のパフォーマンスよりも、ソートの仕組みそのものを理解する学習用途に向く</li>
+    </ul>
+  `,
+};
+
+const STATS = [
+  { key:'elapsed', name:'経過', desc:'今の周回（シャッフルしてから完成するまでの1セット）が始まってから、何秒たったかです。完成すると0秒に戻り、次の周回が始まります。' },
+  { key:'sps',     name:'ステップ/秒', desc:'1秒あたりに行っている「比較」「交換」「書き込み」の合計回数です。数値が大きいほど、いまその瞬間の処理が速く進んでいます。' },
+  { key:'steps',   name:'総ステップ', desc:'今の周回で、これまでに行った「比較」「交換」「書き込み」の合計回数です。周回が終わるとまた0からカウントし直します。' },
+  { key:'avg',     name:'平均タイム', desc:'これまでに完了したすべての周回にかかった時間の平均です。回数を重ねるほど、そのアルゴリズムの「だいたいの実力」に近づいていきます。' },
+  { key:'loop',    name:'◯周目', desc:'配列がシャッフルされてから整列し終わるまでを1周と数えます。「3周目」なら、すでに2回完成させて、今は3回目に挑戦中という意味です。' },
+];
+
+const TERM_DEFS = {
+  best: 'ベスト：入力データがそのアルゴリズムにとって最も都合よく並んでいた場合に、達成できる最短の処理量です。',
+  avgworst: '平均：ランダムな入力に対する典型的な処理量です。ワースト：そのアルゴリズムにとって最も都合の悪い入力に対する処理量です。',
+  bestavgworst: 'このアルゴリズムはどんな入力でも計算量が変わらないため、ベスト・平均・ワーストの区別がなく、常に成り立つ計算量として1つにまとめています。',
+  avg: 'ランダムな入力に対する典型的な処理量です。',
+  worst: 'そのアルゴリズムにとって最も都合の悪い入力（最悪ケース）に対する処理量です。',
+  approx: 'ギャップの選び方など、細かいパラメータによって変わる部分があるため、正確な値ではなく実測に基づくおおよその計算量として示しています。',
+  space: '元の配列とは別に、アルゴリズムが追加でどれくらいのメモリを必要とするかです。O(1)なら追加メモリはほとんど不要（その場で並べ替える＝in-place）、O(n)なら元のデータと同じくらいの追加メモリが必要です。',
+  stability: '同じ値を持つ要素が複数あったとき、並べ替えの前後でその要素同士の順番が保たれるかどうかです。「安定」なら順番は保たれ、「不安定」なら入れ替わることがあります。',
+};
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.info-dot[data-term]');
+  if(!btn) return;
+  e.stopPropagation();
+  const key = btn.dataset.term;
+  const tr = btn.closest('tr');
+  if(!tr) return;
+  const next = tr.nextElementSibling;
+  if(next && next.classList.contains('term-note') && next.dataset.term === key){
+    next.remove();
+    return;
+  }
+  const table = tr.closest('table');
+  if(table){ table.querySelectorAll('tr.term-note').forEach(n=>n.remove()); }
+  const colspan = tr.children.length;
+  const note = `<tr class="term-note" data-term="${key}"><td colspan="${colspan}" style="color:var(--dim);font-size:12px;line-height:1.7;padding:2px 10px 12px;">${TERM_DEFS[key]||''}</td></tr>`;
+  tr.insertAdjacentHTML('afterend', note);
+});
+
+function openStatDetail(key){
+  const s = STATS.find(x=>x.key===key);
+  if(!s) return;
+  modalContent.innerHTML = `<h2>${s.name}</h2><p>${s.desc}</p>`;
+  modalOverlay.classList.add('open');
+  modalOverlay.setAttribute('aria-hidden','false');
+}
+
+// ---- generators: each yields an action describing what just happened ----
+function* bubbleSort(a){
+  for(let i=0;i<a.length-1;i++){
+    for(let j=0;j<a.length-1-i;j++){
+      yield {type:'compare', i:j, j:j+1};
+      if(a[j]>a[j+1]){ [a[j],a[j+1]]=[a[j+1],a[j]]; yield {type:'swap', i:j, j:j+1}; }
+    }
+  }
+}
+function* selectionSort(a){
+  for(let i=0;i<a.length-1;i++){
+    let min=i;
+    for(let j=i+1;j<a.length;j++){ yield {type:'compare', i:min, j:j}; if(a[j]<a[min]) min=j; }
+    if(min!==i){ [a[i],a[min]]=[a[min],a[i]]; yield {type:'swap', i:i, j:min}; }
+  }
+}
+function* insertionSort(a){
+  for(let i=1;i<a.length;i++){
+    let j=i;
+    while(j>0 && a[j-1]>a[j]){ [a[j-1],a[j]]=[a[j],a[j-1]]; yield {type:'swap', i:j-1, j:j}; j--; }
+    yield {type:'compare', i:Math.max(j-1,0), j:j};
+  }
+}
+function* quickSort(a, lo=0, hi=a.length-1){
+  if(lo>=hi) return;
+  const pivot=a[hi]; let i=lo;
+  for(let j=lo;j<hi;j++){
+    yield {type:'compare', i:j, j:hi};
+    if(a[j]<pivot){ [a[i],a[j]]=[a[j],a[i]]; i++; yield {type:'swap', i:i-1, j:j}; }
+  }
+  [a[i],a[hi]]=[a[hi],a[i]]; yield {type:'swap', i:i, j:hi};
+  yield* quickSort(a, lo, i-1);
+  yield* quickSort(a, i+1, hi);
+}
+function* mergeSort(a, lo=0, hi=a.length-1){
+  if(lo>=hi) return;
+  const mid=(lo+hi)>>1;
+  yield* mergeSort(a, lo, mid);
+  yield* mergeSort(a, mid+1, hi);
+  const left=a.slice(lo,mid+1), right=a.slice(mid+1,hi+1);
+  let i=0,j=0,k=lo;
+  while(i<left.length && j<right.length){
+    yield {type:'compare', i:k, j:k};
+    a[k] = (left[i] <= right[j]) ? left[i++] : right[j++];
+    yield {type:'write', i:k, j:k};
+    k++;
+  }
+  while(i<left.length){ a[k]=left[i++]; yield {type:'write', i:k, j:k}; k++; }
+  while(j<right.length){ a[k]=right[j++]; yield {type:'write', i:k, j:k}; k++; }
+}
+function* heapSort(a){
+  const n=a.length;
+  function* heapify(size,i){
+    let largest=i, l=2*i+1, r=2*i+2;
+    yield {type:'compare', i:i, j:l<size?l:i};
+    if(l<size && a[l]>a[largest]) largest=l;
+    if(r<size && a[r]>a[largest]) largest=r;
+    if(largest!==i){ [a[i],a[largest]]=[a[largest],a[i]]; yield {type:'swap', i:i, j:largest}; yield* heapify(size,largest); }
+  }
+  for(let i=Math.floor(n/2)-1;i>=0;i--) yield* heapify(n,i);
+  for(let i=n-1;i>0;i--){ [a[0],a[i]]=[a[i],a[0]]; yield {type:'swap', i:0, j:i}; yield* heapify(i,0); }
+}
+function* shellSort(a){
+  const n = a.length;
+  for(let gap = Math.floor(n/2); gap > 0; gap = Math.floor(gap/2)){
+    for(let i = gap; i < n; i++){
+      const temp = a[i];
+      let j = i;
+      while(j >= gap){
+        yield {type:'compare', i:j-gap, j:j};
+        if(a[j-gap] > temp){
+          a[j] = a[j-gap];
+          yield {type:'write', i:j, j:j-gap};
+          j -= gap;
+        }else break;
+      }
+      a[j] = temp;
+      yield {type:'write', i:j, j:j};
+    }
+  }
+}
+function* combSort(a){
+  const n = a.length;
+  let gap = n, shrink = 1.3, sorted = false;
+  while(!sorted){
+    gap = Math.floor(gap/shrink);
+    if(gap <= 1){ gap = 1; sorted = true; }
+    for(let i=0; i+gap<n; i++){
+      yield {type:'compare', i:i, j:i+gap};
+      if(a[i] > a[i+gap]){ [a[i],a[i+gap]]=[a[i+gap],a[i]]; yield {type:'swap', i:i, j:i+gap}; sorted = false; }
+    }
+  }
+}
+function* cocktailSort(a){
+  const n = a.length;
+  let start = 0, end = n-1, swapped = true;
+  while(swapped){
+    swapped = false;
+    for(let i=start; i<end; i++){
+      yield {type:'compare', i:i, j:i+1};
+      if(a[i] > a[i+1]){ [a[i],a[i+1]]=[a[i+1],a[i]]; yield {type:'swap', i:i, j:i+1}; swapped = true; }
+    }
+    end--;
+    if(!swapped) break;
+    swapped = false;
+    for(let i=end; i>start; i--){
+      yield {type:'compare', i:i-1, j:i};
+      if(a[i-1] > a[i]){ [a[i-1],a[i]]=[a[i],a[i-1]]; yield {type:'swap', i:i-1, j:i}; swapped = true; }
+    }
+    start++;
+  }
+}
+function* gnomeSort(a){
+  const n = a.length;
+  let i = 0;
+  while(i < n){
+    if(i === 0){ i++; continue; }
+    yield {type:'compare', i:i-1, j:i};
+    if(a[i-1] <= a[i]){ i++; }
+    else{ [a[i-1],a[i]]=[a[i],a[i-1]]; yield {type:'swap', i:i-1, j:i}; i--; }
+  }
+}
+const BUILDERS = {
+  bubble: bubbleSort, selection: selectionSort, insertion: insertionSort,
+  quick: quickSort, merge: mergeSort, heap: heapSort,
+  shell: shellSort, comb: combSort, cocktail: cocktailSort, gnome: gnomeSort
+};
+
+// ---- dom refs ----
+const explainGrid = document.getElementById('explainGrid');
+const algoToggles = document.getElementById('algoToggles');
+const panelsEl = document.getElementById('panels');
+const lbRows = document.getElementById('lbRows');
+const sizeSel = document.getElementById('sizeSel');
+const speedRange = document.getElementById('speedRange');
+const speedVal = document.getElementById('speedVal');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+const sessionClockEl = document.getElementById('sessionClock');
+const totalLoopsEl = document.getElementById('totalLoops');
+const modalOverlay = document.getElementById('modalOverlay');
+const modalContent = document.getElementById('modalContent');
+const modalClose = document.getElementById('modalClose');
+
+// ---- detail modal logic ----
+function openDetail(key){
+  const def = ALGORITHMS.find(a=>a.key===key);
+  if(!def) return;
+  modalContent.innerHTML = `
+    <span class="detail-badge" style="background:${def.color}22;color:${def.color}">${def.complexity}</span>
+    <h2>${def.name}</h2>
+    ${DETAILS[key] || '<p>解説は準備中です。</p>'}
+  `;
+  modalOverlay.classList.add('open');
+  modalOverlay.setAttribute('aria-hidden','false');
+}
+function closeDetail(){
+  modalOverlay.classList.remove('open');
+  modalOverlay.setAttribute('aria-hidden','true');
+}
+modalClose.addEventListener('click', closeDetail);
+modalOverlay.addEventListener('click', (e)=>{ if(e.target === modalOverlay) closeDetail(); });
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeDetail(); });
+
+explainGrid.innerHTML = ALGORITHMS.map(h => `
+  <div class="explain-card" style="border-left-color:${h.color}" data-key="${h.key}" tabindex="0" role="button">
+    <div class="ec-head"><span class="ec-name">${h.name}</span><span class="ec-complexity">${h.complexity}</span></div>
+    <p>${h.desc}</p>
+    <div class="ec-more">→ めくって仕組みを読む</div>
+  </div>
+`).join('');
+explainGrid.querySelectorAll('.explain-card').forEach(card=>{
+  card.addEventListener('click', ()=> openDetail(card.dataset.key));
+  card.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openDetail(card.dataset.key); } });
+});
+
+let active = new Set(ALGORITHMS.map(a=>a.key));
+let focusedKey = null;
+let paused = false;
+let sessionStart = performance.now();
+let arraySize = parseInt(sizeSel.value,10);
+let runners = {}; // key -> state
+
+function newArray(n){
+  const arr = Array.from({length:n}, (_,i)=>i+1);
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function makeRunner(def){
+  const arr = newArray(arraySize);
+  return {
+    def,
+    arr,
+    gen: BUILDERS[def.key](arr),
+    steps: 0,
+    momentum: 0,
+    loopStart: performance.now(),
+    loopCount: 0,
+    totalTime: 0,
+    avgTime: null,
+    lastTime: null,
+    lastAction: null,
+    speedSamples: [],
+    lastSampleAt: 0,
+    els: null,
+  };
+}
+
+function buildToggles(){
+  algoToggles.innerHTML = '';
+  ALGORITHMS.forEach(a=>{
+    const btn = document.createElement('button');
+    btn.className = 'chip on';
+    btn.textContent = a.name;
+    btn.style.borderColor = a.color;
+    btn.style.color = a.color;
+    btn.addEventListener('click', ()=>{
+      if(active.has(a.key)){
+        active.delete(a.key);
+        btn.classList.remove('on');
+        btn.style.color = 'var(--dim)';
+        btn.style.borderColor = 'var(--line)';
+      }else{
+        active.add(a.key);
+        btn.classList.add('on');
+        btn.style.color = a.color;
+        btn.style.borderColor = a.color;
+      }
+      buildPanels();
+    });
+    algoToggles.appendChild(btn);
+  });
+}
+
+function panelTemplate(def){
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+  panel.dataset.key = def.key;
+  panel.innerHTML = `
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="dot"></span>
+        <button type="button" class="panel-name-btn" aria-label="${def.name}の仕組みを詳しく見る">
+          <span class="panel-name">${def.name}</span>
+          <span class="info-dot">i</span>
+        </button>
+      </div>
+      <span class="panel-complexity">${def.complexity}</span>
+      <span class="panel-loop"><span class="loop-text">0周目</span><button type="button" class="info-dot" data-stat="loop" aria-label="周目の意味を見る">i</button></span>
+    </div>
+    <div class="bars"></div>
+    <div class="progress"><div class="progress-fill"></div></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="lbl">経過 <button type="button" class="info-dot" data-stat="elapsed" aria-label="経過の意味を見る">i</button></div><div class="val elapsed">0.0s</div></div>
+      <div class="stat speed"><div class="lbl">ステップ/秒 <button type="button" class="info-dot" data-stat="sps" aria-label="ステップ/秒の意味を見る">i</button></div><div class="val sps">0</div></div>
+      <div class="stat"><div class="lbl">総ステップ <button type="button" class="info-dot" data-stat="steps" aria-label="総ステップの意味を見る">i</button></div><div class="val steps">0</div></div>
+      <div class="stat avg"><div class="lbl">平均タイム <button type="button" class="info-dot" data-stat="avg" aria-label="平均タイムの意味を見る">i</button></div><div class="val avg">—</div></div>
+    </div>
+    <svg class="spark" viewBox="0 0 200 30" preserveAspectRatio="none"><path d=""></path></svg>
+  `;
+  panel.querySelector('.spark path').style.stroke = def.color;
+  panel.querySelector('.panel-name-btn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    openDetail(def.key);
+  });
+  panel.querySelectorAll('.info-dot[data-stat]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openStatDetail(btn.dataset.stat);
+    });
+  });
+  panel.querySelector('.panel-head').addEventListener('click', ()=>{
+    focusedKey = (focusedKey === def.key) ? null : def.key;
+    buildPanels();
+  });
+  return panel;
+}
+
+function buildPanels(){
+  panelsEl.innerHTML = '';
+  const order = ALGORITHMS.filter(a=>active.has(a.key));
+  order.forEach(def=>{
+    if(!runners[def.key]) runners[def.key] = makeRunner(def);
+    const panel = panelTemplate(def);
+    if(def.key === focusedKey) panel.classList.add('focused');
+    panelsEl.appendChild(panel);
+    const r = runners[def.key];
+    r.els = {
+      panel,
+      dot: panel.querySelector('.dot'),
+      loopLabel: panel.querySelector('.loop-text'),
+      bars: panel.querySelector('.bars'),
+      progressFill: panel.querySelector('.progress-fill'),
+      elapsed: panel.querySelector('.elapsed'),
+      sps: panel.querySelector('.sps'),
+      stepsEl: panel.querySelector('.steps'),
+      avgEl: panel.querySelector('.avg'),
+      spark: panel.querySelector('.spark path'),
+    };
+    r.els.bars.innerHTML = r.arr.map(()=> '<i></i>').join('');
+  });
+  // remove runners for deactivated algorithms to free memory
+  Object.keys(runners).forEach(k=>{
+    if(!active.has(k)) delete runners[k];
+  });
+}
+
+function fmtTime(ms){
+  const s = ms/1000;
+  return s.toFixed(1) + 's';
+}
+function fmtClock(ms){
+  const totalSec = Math.floor(ms/1000);
+  const m = Math.floor(totalSec/60);
+  const s = totalSec%60;
+  return m + ':' + String(s).padStart(2,'0');
+}
+
+function renderRunner(r, now){
+  const max = arraySize;
+  const bars = r.els.bars.children;
+  for(let i=0;i<r.arr.length;i++){
+    if(bars[i]){
+      bars[i].style.height = (r.arr[i]/max*100) + '%';
+      bars[i].classList.remove('hl-compare','hl-swap','hl-write');
+    }
+  }
+  if(r.lastAction){
+    const cls = r.lastAction.type==='swap' ? 'hl-swap' : (r.lastAction.type==='write' ? 'hl-write' : 'hl-compare');
+    if(bars[r.lastAction.i]) bars[r.lastAction.i].classList.add(cls);
+    if(bars[r.lastAction.j]) bars[r.lastAction.j].classList.add(cls);
+  }
+  let correct = 0;
+  for(let i=0;i<r.arr.length;i++) if(r.arr[i]===i+1) correct++;
+  const progress = correct / r.arr.length;
+  r.els.progressFill.style.width = Math.round(progress*100) + '%';
+
+  const elapsedMs = now - r.loopStart;
+  const sps = elapsedMs > 0 ? (r.steps / (elapsedMs/1000)) : 0;
+  r.els.elapsed.textContent = fmtTime(elapsedMs);
+  r.els.sps.textContent = Math.round(sps).toLocaleString();
+  r.els.stepsEl.textContent = r.steps.toLocaleString();
+  r.els.avgEl.textContent = r.avgTime !== null ? fmtTime(r.avgTime) : '—';
+  r.els.loopLabel.textContent = r.loopCount + '周目';
+  r.els.dot.classList.toggle('running', !paused);
+
+  if(now - r.lastSampleAt > 150){
+    r.lastSampleAt = now;
+    r.speedSamples.push(sps);
+    if(r.speedSamples.length > 40) r.speedSamples.shift();
+    const maxS = Math.max(1, ...r.speedSamples);
+    const pts = r.speedSamples.map((v,idx)=>{
+      const x = (idx/(Math.max(1,r.speedSamples.length-1)))*200;
+      const y = 30 - (v/maxS)*28 - 1;
+      return x.toFixed(1)+','+y.toFixed(1);
+    }).join(' ');
+    r.els.spark.setAttribute('d', pts.length ? 'M'+pts.replace(/ /g,' L') : '');
+  }
+}
+
+function stepRunner(r, baseRate, now){
+  r.momentum += baseRate;
+  while(r.momentum >= 1){
+    const res = r.gen.next();
+    r.momentum -= 1;
+    if(res.done){
+      const loopMs = now - r.loopStart;
+      r.loopCount++;
+      r.totalTime += loopMs;
+      r.avgTime = r.totalTime / r.loopCount;
+      r.lastTime = loopMs;
+      if(r.els){
+        r.els.panel.classList.add('flash');
+        setTimeout(()=> r.els.panel && r.els.panel.classList.remove('flash'), 500);
+      }
+      // reshuffle and restart immediately — endless loop
+      r.arr = newArray(arraySize);
+      r.gen = BUILDERS[r.def.key](r.arr);
+      r.steps = 0;
+      r.momentum = 0;
+      r.loopStart = now;
+      r.lastAction = null;
+      if(r.els){ r.els.bars.innerHTML = r.arr.map(()=> '<i></i>').join(''); }
+      updateLeaderboard();
+      break;
+    }
+    r.steps++;
+    r.lastAction = res.value;
+  }
+}
+
+function updateLeaderboard(){
+  const ranked = Object.values(runners)
+    .filter(r=>r.avgTime !== null)
+    .sort((a,b)=> a.avgTime - b.avgTime);
+  let totalLoops = 0;
+  Object.values(runners).forEach(r=> totalLoops += r.loopCount);
+  totalLoopsEl.textContent = totalLoops.toLocaleString();
+  if(!ranked.length){
+    lbRows.innerHTML = '<div class="lb-empty">まだ記録なし。ひと周りしたら、ここに並びます。</div>';
+    return;
+  }
+  const slowest = ranked[ranked.length-1].avgTime;
+  lbRows.innerHTML = ranked.map((r,idx)=>{
+    const pct = Math.max(4, Math.round((1 - r.avgTime/slowest) * 96) + 4);
+    return `
+      <div class="lb-row">
+        <div class="lb-rank">${idx+1}</div>
+        <div class="lb-name"><span class="lb-swatch" style="background:${r.def.color}"></span>${r.def.name}</div>
+        <div class="lb-track"><div class="lb-fill" style="width:${pct}%;background:${r.def.color}"></div></div>
+        <div class="lb-val">${fmtTime(r.avgTime)} / ${r.loopCount}周</div>
+      </div>`;
+  }).join('');
+}
+
+function resetStats(){
+  Object.values(runners).forEach(r=>{
+    r.loopCount = 0;
+    r.totalTime = 0;
+    r.avgTime = null;
+    r.lastTime = null;
+    r.speedSamples = [];
+  });
+  sessionStart = performance.now();
+  updateLeaderboard();
+}
+
+speedRange.addEventListener('input', ()=>{ speedVal.textContent = parseFloat(speedRange.value).toFixed(1).replace(/\.0$/,''); });
+sizeSel.addEventListener('change', ()=>{
+  arraySize = parseInt(sizeSel.value,10);
+  Object.keys(runners).forEach(k=> delete runners[k]);
+  buildPanels();
+  updateLeaderboard();
+});
+pauseBtn.addEventListener('click', ()=>{
+  paused = !paused;
+  pauseBtn.textContent = paused ? 'また動かす ▶' : '一時停止 ⏸';
+});
+resetBtn.addEventListener('click', resetStats);
+
+function mainLoop(){
+  const now = performance.now();
+  if(!paused){
+    const baseRate = parseFloat(speedRange.value);
+    Object.values(runners).forEach(r=>{
+      if(!r.els) return;
+      stepRunner(r, baseRate, now);
+      renderRunner(r, now);
+    });
+  }
+  sessionClockEl.textContent = fmtClock(now - sessionStart);
+  requestAnimationFrame(mainLoop);
+}
+
+buildToggles();
+buildPanels();
+updateLeaderboard();
+requestAnimationFrame(mainLoop);
+</script>
+</body>
+</html>
